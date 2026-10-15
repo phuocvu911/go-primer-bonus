@@ -227,3 +227,104 @@ func TestDecodeProperties(t *testing.T) {
 		}
 	}
 }
+
+func TestEncodedLen(t *testing.T) {
+	tests := []struct {
+		name string
+		n    int
+		want int
+	}{
+		{"zero", 0, 0},
+		{"one byte", 1, 2},
+		{"multiple bytes", 5, 10},
+		{"large input", 1000, 2000},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := EncodedLen(tt.n); got != tt.want {
+				t.Errorf("EncodedLen(%d) = %d, want %d", tt.n, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDecodedLen(t *testing.T) {
+	tests := []struct {
+		name string
+		n    int
+		want int
+	}{
+		{"zero", 0, 0},
+		{"one hex digit", 1, 0},
+		{"one byte", 2, 1},
+		{"odd number of digits", 5, 2},
+		{"multiple bytes", 10, 5},
+		{"large input", 2000, 1000},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := DecodedLen(tt.n); got != tt.want {
+				t.Errorf("DecodedLen(%d) = %d, want %d", tt.n, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestEncodeToString(t *testing.T) {
+	tests := []struct {
+		name  string
+		input []byte
+		want  string
+	}{
+		{"nil input", nil, ""},
+		{"empty input", []byte{}, ""},
+		{"zero byte", []byte{0x00}, "00"},
+		{"all byte values", []byte{0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF}, "0123456789abcdef"},
+		{"text", []byte("Hello"), "48656c6c6f"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := EncodeToString(tt.input); got != tt.want {
+				t.Errorf("EncodeToString(%v) = %q, want %q", tt.input, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDecodeString(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  []byte
+		valid bool
+	}{
+		{"empty input", "", []byte{}, true},
+		{"single byte", "00", []byte{0x00}, true},
+		{"mixed case", "aB", []byte{0xAB}, true},
+		{"multiple bytes", "48656c6c6f", []byte("Hello"), true},
+		{"odd length", "abc", nil, false},
+		{"invalid high nibble", "g0", nil, false},
+		{"invalid low nibble", "0G", nil, false},
+		{"invalid character between valid bytes", "00x0", nil, false},
+		{"space", "00 0", nil, false},
+		{"non-ASCII character", "é0", nil, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, valid := DecodeString(tt.input)
+			if valid != tt.valid {
+				t.Errorf("DecodeString(%q) validity = %v, want %v", tt.input, valid, tt.valid)
+			}
+			if !bytes.Equal(got, tt.want) {
+				t.Errorf("DecodeString(%q) = %v, want %v", tt.input, got, tt.want)
+			}
+			if !tt.valid && got != nil {
+				t.Errorf("DecodeString(%q) result = %v, want nil for invalid input", tt.input, got)
+			}
+		})
+	}
+}

@@ -40,3 +40,27 @@ func Decode(src []byte) ([]byte, bool) {
 	}
 	return res, true
 }
+
+// EncodedLen return length after encode
+func EncodedLen(n int) int {
+	return n * 2
+}
+
+// DecodedLen return length after decode
+func DecodedLen(n int) int {
+	return n / 2
+}
+
+// EncodeToString returns hex encoding of src
+func EncodeToString(src []byte) string {
+	res := make([]byte, EncodedLen(len(src)))
+	res = Encode(src)
+	return string(res)
+}
+
+// DecodeString reconstructs the src from hex encoded string
+func DecodeString(s string) ([]byte, bool) {
+	res := make([]byte, DecodedLen(len(s)))
+	res, err := Decode([]byte(s))
+	return res, err
+}
