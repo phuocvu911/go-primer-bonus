@@ -46,6 +46,8 @@ func ReverseBytes32(x uint32) uint32 {
 	return res
 }
 
+//---------------------------------------------------------------------
+
 // LeadingZeros32 return the number of leading zero bits in x
 func LeadingZeros32(x uint32) int {
 	return 32 - Len32(x)

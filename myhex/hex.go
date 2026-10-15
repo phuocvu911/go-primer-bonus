@@ -41,6 +41,8 @@ func Decode(src []byte) ([]byte, bool) {
 	return res, true
 }
 
+//---------------------------------------------------------------------
+
 // EncodedLen return length after encode
 func EncodedLen(n int) int {
 	return n * 2
