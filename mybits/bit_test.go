@@ -189,6 +189,120 @@ func TestRotateLeft32(t *testing.T) {
 	})
 }
 
+func TestRotateLeft8(t *testing.T) {
+	tests := []struct {
+		name string
+		x    uint8
+		k    int
+		want uint8
+	}{
+		{name: "zero", x: 0, k: 3, want: 0},
+		{name: "no rotation", x: 0x12, k: 0, want: 0x12},
+		{name: "full rotation", x: 0x12, k: 8, want: 0x12},
+		{name: "multiple full rotations", x: 0x12, k: 24, want: 0x12},
+		{name: "rotate low bit into high bit", x: 1, k: 7, want: 0x80},
+		{name: "rotate high bit into low bit", x: 0x80, k: 1, want: 1},
+		{name: "rotate by more than width", x: 0x81, k: 9, want: 3},
+		{name: "negative rotation", x: 1, k: -1, want: 0x80},
+		{name: "all bits set", x: 0xFF, k: 3, want: 0xFF},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := RotateLeft8(tt.x, tt.k); got != tt.want {
+				t.Errorf("RotateLeft8(%#02x, %d) = %#02x; want %#02x", tt.x, tt.k, got, tt.want)
+			}
+		})
+	}
+
+	t.Run("cross check with math/bits", func(t *testing.T) {
+		values := []uint8{0, 1, 0x80, 0x12, 0xA5, 0xFF}
+		for _, x := range values {
+			for k := -16; k <= 16; k++ {
+				if got, want := RotateLeft8(x, k), bits.RotateLeft8(x, k); got != want {
+					t.Errorf("RotateLeft8(%#02x, %d) = %#02x; want %#02x (from math/bits)", x, k, got, want)
+				}
+			}
+		}
+	})
+}
+
+func TestRotateLeft16(t *testing.T) {
+	tests := []struct {
+		name string
+		x    uint16
+		k    int
+		want uint16
+	}{
+		{name: "zero", x: 0, k: 5, want: 0},
+		{name: "no rotation", x: 0x1234, k: 0, want: 0x1234},
+		{name: "full rotation", x: 0x1234, k: 16, want: 0x1234},
+		{name: "multiple full rotations", x: 0x1234, k: 48, want: 0x1234},
+		{name: "rotate low bit into high bit", x: 1, k: 15, want: 0x8000},
+		{name: "rotate high bit into low bit", x: 0x8000, k: 1, want: 1},
+		{name: "rotate by more than width", x: 0x8001, k: 17, want: 3},
+		{name: "negative rotation", x: 1, k: -1, want: 0x8000},
+		{name: "all bits set", x: 0xFFFF, k: 7, want: 0xFFFF},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := RotateLeft16(tt.x, tt.k); got != tt.want {
+				t.Errorf("RotateLeft16(%#04x, %d) = %#04x; want %#04x", tt.x, tt.k, got, tt.want)
+			}
+		})
+	}
+
+	t.Run("cross check with math/bits", func(t *testing.T) {
+		values := []uint16{0, 1, 0x8000, 0x1234, 0xA5A5, 0xFFFF}
+		for _, x := range values {
+			for k := -32; k <= 32; k++ {
+				if got, want := RotateLeft16(x, k), bits.RotateLeft16(x, k); got != want {
+					t.Errorf("RotateLeft16(%#04x, %d) = %#04x; want %#04x (from math/bits)", x, k, got, want)
+				}
+			}
+		}
+	})
+}
+
+func TestRotateLeft64(t *testing.T) {
+	tests := []struct {
+		name string
+		x    uint64
+		k    int
+		want uint64
+	}{
+		{name: "zero", x: 0, k: 5, want: 0},
+		{name: "no rotation", x: 0x123456789ABCDEF0, k: 0, want: 0x123456789ABCDEF0},
+		{name: "full rotation", x: 0x123456789ABCDEF0, k: 64, want: 0x123456789ABCDEF0},
+		{name: "multiple full rotations", x: 0x123456789ABCDEF0, k: 128, want: 0x123456789ABCDEF0},
+		{name: "rotate low bit into high bit", x: 1, k: 63, want: 0x8000000000000000},
+		{name: "rotate high bit into low bit", x: 0x8000000000000000, k: 1, want: 1},
+		{name: "rotate by more than width", x: 0x8000000000000001, k: 65, want: 3},
+		{name: "negative rotation", x: 1, k: -1, want: 0x8000000000000000},
+		{name: "all bits set", x: ^uint64(0), k: 17, want: ^uint64(0)},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := RotateLeft64(tt.x, tt.k); got != tt.want {
+				t.Errorf("RotateLeft64(%#016x, %d) = %#016x; want %#016x", tt.x, tt.k, got, tt.want)
+			}
+		})
+	}
+
+	t.Run("cross check with math/bits", func(t *testing.T) {
+		values := []uint64{0, 1, 0x8000000000000000, 0x123456789ABCDEF0, 0xA5A5A5A5A5A5A5A5, ^uint64(0)}
+		for _, x := range values {
+			for k := -128; k <= 128; k++ {
+				if got, want := RotateLeft64(x, k), bits.RotateLeft64(x, k); got != want {
+					t.Errorf("RotateLeft64(%#016x, %d) = %#016x; want %#016x (from math/bits)", x, k, got, want)
+				}
+			}
+		}
+	})
+}
+
 func TestReverse32(t *testing.T) {
 	tests := []struct {
 		name string
