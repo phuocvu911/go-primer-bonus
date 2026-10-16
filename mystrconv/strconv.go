@@ -128,3 +128,85 @@ func Atoi(s string) (int, bool) {
 	}
 	return int(res), true
 }
+
+//---------------------------------------------------------------------
+
+// Itoa turn int to string
+func Itoa(i int) string {
+	str, _ := FormatInt(int64(i), 10)
+	return str
+}
+
+// FormatBool return "true" or "false"
+func FormatBool(b bool) string {
+	if b {
+		return "true"
+	}
+	return "false"
+}
+
+// AppendInt appends string form of i to dst.
+func AppendInt(dst []byte, i int64, base int) ([]byte, bool) {
+	s, ok := FormatInt(i, base)
+	if !ok {
+		return nil, false
+	}
+	dst = append(dst, []byte(s)...)
+	return dst, true
+}
+
+// ParseInt converts the string s to a int64 in the given base.
+func ParseInt(s string, base int, bitSize int) (int64, bool) {
+	if len(s) == 0 {
+		return 0, false
+	}
+	sign := s[0]
+	isNeg := false
+	if sign == '+' || sign == '-' {
+		s = s[1:]
+		if sign == '-' {
+			isNeg = true
+		}
+	}
+	res, ok := ParseUint(s, base, bitSize)
+	if !ok {
+		return 0, false
+	}
+
+	if bitSize == 0 {
+		bitSize = 64
+	}
+	
+	maxPositive := uint64(1)<<uint(bitSize-1) - 1
+	maxNegativeAbs := uint64(1) << uint(bitSize-1)
+
+	if isNeg {
+		if res > maxNegativeAbs {
+			return 0, false
+		}
+		return int64(-res), true
+	}
+	if res > maxPositive {
+		return 0, false
+	}
+	return int64(res), true
+}
+
+var Trues []string = []string{"1", "t", "T", "TRUE", "true", "True"}
+var Falses []string = []string{"0", "f", "F", "FALSE", "false", "False"}
+
+// ParseBool return boolean value from s.
+func ParseBool(s string) (value bool, ok bool) {
+	for _, t := range Trues {
+		if s == t {
+			return true, true
+		}
+	}
+
+	for _, f := range Falses {
+		if s == f {
+			return false, true
+		}
+	}
+	return false, false
+}
